@@ -122,12 +122,12 @@ void compileVarDecl(void) {
 
 void compileSubDecls(void) {
   assert("Parsing subtoutines ....");
-  while (lookAhead->tokenType == KW_FUNCTION || lookAhead->tokenType == KW_PROCEDURE) {
-    if (lookAhead->tokenType == KW_FUNCTION) {
-      compileFuncDecl();
-    } else {
-      compileProcDecl();
-    }
+  if (lookAhead->tokenType == KW_FUNCTION) {
+    compileFuncDecl();
+    compileSubDecls();
+  } else if (lookAhead->tokenType == KW_PROCEDURE) {
+    compileProcDecl();
+    compileSubDecls();
   }
   assert("Subtoutines parsed ....");
 }
@@ -287,6 +287,12 @@ void compileStatements2(void) {
   while (lookAhead->tokenType == SB_SEMICOLON) {
     eat(SB_SEMICOLON);
     compileStatement();
+  }
+  // Check for missing semicolon before END
+  if (lookAhead->tokenType != KW_END && 
+      lookAhead->tokenType != KW_ELSE &&
+      lookAhead->tokenType != TK_EOF) {
+    missingToken(SB_SEMICOLON, lookAhead->lineNo, lookAhead->colNo);
   }
 }
 
